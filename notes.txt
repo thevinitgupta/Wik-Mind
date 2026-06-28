@@ -1,0 +1,3 @@
+
+
+pnpm dlx shadcn@latest apply --preset b6thgaH7g
