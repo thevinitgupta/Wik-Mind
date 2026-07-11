@@ -48,8 +48,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-
             Authentication existing =
                     SecurityContextHolder.getContext().getAuthentication();
             if (existing == null || !existing.isAuthenticated() || existing instanceof AnonymousAuthenticationToken) {
@@ -73,10 +71,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
             filterChain.doFilter(request,response);
-        }catch (Exception e){
-            LOGGER.error("JWT Filter failed", e);
-            handlerExceptionResolver.resolveException(request, response, null, e);
-        }
     }
 
     @Override

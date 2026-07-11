@@ -35,6 +35,7 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public ResponseEntity<String> refershAuthToken(@CookieValue(value = "refresh_token") String refreshToken, HttpServletResponse httpServletResponse) throws ServletRequestBindingException{
+        System.out.println("REFRESH TOKEN ENDPOINT HIT ");
         if(!StringUtils.hasLength(refreshToken)){
             throw new RequestCookieException("Refresh Token");
         }

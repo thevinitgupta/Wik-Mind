@@ -5,10 +5,11 @@ import React, { useEffect } from 'react'
 
 const Dashboard = () => {
   const router = useRouter();
-  const {data : user, isError, isPending} = useCurrentUser();
+  const {data : user, isError, isPending, error} = useCurrentUser();
 
   useEffect(() => {
     if (isError) {
+      console.log("Error in Dashboard: ",error);
       router.replace("/");
     }
   }, [isError, router]);

@@ -93,11 +93,15 @@ public class JwtUtils {
                 .compact();
     }
 
-    public boolean isTokenValid(String token, String type) {
+    public boolean isTokenValid(String token, String expectedType) {
         try {
-            return !isTokenExpired(token);
-        }catch (Exception e){
-            LOGGER.error("Token validation failed : {}", extractTokenType(token));
+            Claims claims = extractAllClaims(token);
+
+            return expectedType.equals(claims.get("type"))
+                    && !claims.getExpiration().before(new Date());
+
+        } catch (Exception e) {
+            LOGGER.warn("Token validation failed", e);
             return false;
         }
     }

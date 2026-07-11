@@ -29,8 +29,8 @@ backendClient.interceptors.response.use(
     const isRefreshRoute = originalRequest.url?.includes("/api/auth/refresh");
 
     if (error.response?.status === 401 && isRefreshRoute) {
+      console.log("Refresh route failed")
       refreshPromise = null;
-      window.location.href = "/";
       return Promise.reject(error);
     }
 
