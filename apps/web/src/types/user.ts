@@ -1,0 +1,9 @@
+export interface UserResponseDTO{
+	id: string; 
+	email: string; 
+	displayName: string; 
+	avatarUrl : string;
+	roles: string[]; 
+}
+
+
