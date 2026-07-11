@@ -2,7 +2,7 @@ import React from 'react'
 
 function Aurora() {
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute -z-50 inset-0 overflow-hidden">
   <div className="absolute left-20 top-20 h-72 w-72 rounded-full bg-lime-500/15 blur-[120px]" />
 
   <div className="absolute right-32 bottom-32 h-80 w-80 rounded-full bg-emerald-400/10 blur-[140px]" />

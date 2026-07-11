@@ -9,7 +9,7 @@ function GradientDotGrid() {
   {/* Radial Gradient */}
   <div
     className="
-      absolute inset-0
+      absolute -z-40 inset-0
       bg-[radial-gradient(circle_at_top,rgba(132,204,22,0.12),transparent_60%)]
     "
   />
