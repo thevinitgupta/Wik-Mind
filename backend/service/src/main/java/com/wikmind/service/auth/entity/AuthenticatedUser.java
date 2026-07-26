@@ -10,8 +10,9 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class JwtPrincipal {
+public class AuthenticatedUser {
     UUID userId;
+    String email;
     @Nullable
     Collection<? extends GrantedAuthority> authorities;
     boolean isValid;

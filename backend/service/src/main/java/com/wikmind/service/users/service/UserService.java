@@ -1,11 +1,12 @@
 package com.wikmind.service.users.service;
 
 import com.wikmind.service.users.entity.User;
+import com.wikmind.service.users.entity.dto.UserResponseDTO;
 import com.wikmind.service.users.entity.external.ExternalUser;
 import com.wikmind.service.users.repository.UserRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,7 +26,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Optional<User> fetchUserById(UUID userId){
-        return userRepository.findById(userId);
+    public UserResponseDTO fetchUserResponseByID(UUID userId){
+        User user = this.fetchUserById(userId);
+        return UserResponseDTO.fromUser(user);
+    }
+
+    public User fetchUserById(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User with ID = "+userId+" does not exist or has been deleted"));
     }
 }
