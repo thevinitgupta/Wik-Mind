@@ -1,30 +1,14 @@
-"use client";
-import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react'
+import { CreateWorkspace } from "@/components/dashboard/workspace/CreateWorkspace";
+import { WorkspaceInsights } from "@/components/dashboard/workspace/workspace-insights/insights";
 
-const Dashboard = () => {
-  const router = useRouter();
-  const {data : user, isError, isPending, error} = useCurrentUser();
-
-  useEffect(() => {
-    if (isError) {
-      console.log("Error in Dashboard: ",error);
-      router.replace("/");
-    }
-  }, [isError, router]);
-
-  if(isPending) {
-    return <div>Fetching User Details...</div>
-  }
+export default function DashboardPage() {
   return (
-    <div>
-      <h2>Logged In as : </h2>
-      {
-        user?.displayName
-      }
+    <div className="grid gap-6">
+      <div className="w-full flex justify-between items-center">
+        <h1 className="text-3xl font-bold flex-1">Dashboard</h1>
+        <CreateWorkspace />
+      </div>
+      <WorkspaceInsights />
     </div>
-  )
+  );
 }
-
-export default Dashboard

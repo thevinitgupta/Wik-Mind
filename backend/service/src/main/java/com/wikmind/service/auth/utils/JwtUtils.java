@@ -1,6 +1,6 @@
 package com.wikmind.service.auth.utils;
 
-import com.wikmind.service.auth.entity.JwtPrincipal;
+import com.wikmind.service.auth.entity.AuthenticatedUser;
 import com.wikmind.service.users.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -42,7 +42,7 @@ public class JwtUtils {
         return buildToken(extraClaims, user, jwtExpiration);
     }
 
-    public JwtPrincipal parseAccessToken(String token){
+    public AuthenticatedUser parseAccessToken(String token){
         Claims claims = extractAllClaims(token);
         List<String> roles = claims.get("roles", List.class);
 
@@ -51,7 +51,7 @@ public class JwtUtils {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        return JwtPrincipal.builder()
+        return AuthenticatedUser.builder()
                 .userId(UUID.fromString(claims.getSubject()))
                 .tokenType("access")
                 .isValid(!claims.getExpiration().before(new Date()))
@@ -59,10 +59,10 @@ public class JwtUtils {
                 .build();
     }
 
-    public JwtPrincipal parseRefreshToken(String token){
+    public AuthenticatedUser parseRefreshToken(String token){
         Claims claims = extractAllClaims(token);
 
-        return JwtPrincipal.builder()
+        return AuthenticatedUser.builder()
                 .userId(UUID.fromString(claims.getSubject()))
                 .tokenType("refresh")
                 .isValid(!claims.getExpiration().before(new Date()))
@@ -82,6 +82,7 @@ public class JwtUtils {
                 .subject(user.getId().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
+                .claim("email", user.getEmail())
                 .claim(
                         "roles",
                         user.getAuthorities()

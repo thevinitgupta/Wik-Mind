@@ -6,5 +6,6 @@ export function useCurrentUser() {
     return useQuery({
         queryKey: ["me"],
         queryFn: getCurrentUser,
+        retry : false
     });
 }

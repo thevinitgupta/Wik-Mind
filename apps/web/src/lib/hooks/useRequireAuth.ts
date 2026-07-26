@@ -1,18 +1,16 @@
 import { useEffect } from "react";
-import { useCurrentUser } from "./useCurrentUser";
+import { useCurrentUser } from "./user/useCurrentUser";
 import { useRouter } from "next/navigation";
 
 export function useRequireAuth() {
+  const query = useCurrentUser();
+  const router = useRouter();
 
-    const query = useCurrentUser();
-    const router = useRouter()
+  useEffect(() => {
+    if (query.isError) {
+      router.replace("/");
+    }
+  }, [query.isError]);
 
-    useEffect(() => {
-        if (query.isError) {
-            router.replace("/login");
-        }
-    }, [query.isError]);
-
-    return query;
-
+  return query;
 }
