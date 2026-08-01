@@ -1,0 +1,22 @@
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.05
+    container_name: wikmind-storage
+    restart: unless-stopped
+
+    command:
+      - mini
+      - -dir=/data
+      - -s3.port=8333
+
+    ports:
+      - "8333:8333"   # S3
+      - "8888:8888"   # Filer UI
+      - "9333:9333"   # Master UI
+      - "23646:23646" # Admin UI
+
+    volumes:
+      - wikmind-storage-data:/data
+
+volumes:
+  wikmind-storage-data:
