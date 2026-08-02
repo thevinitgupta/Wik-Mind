@@ -1,0 +1,20 @@
+{
+    "identities": [
+      {
+        "name": "wikmind",
+        "credentials": [
+          {
+            "accessKey": "wikmind",
+            "secretKey": "wikmind-secret"
+          }
+        ],
+        "actions": [
+          "Admin",
+          "Read",
+          "Write",
+          "List",
+          "Tagging"
+        ]
+      }
+    ]
+  }
