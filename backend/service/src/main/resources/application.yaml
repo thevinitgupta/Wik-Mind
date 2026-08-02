@@ -33,5 +33,9 @@ spring:
     embedding:
       options:
         model: text-embedding-3-large
-
-
+storage:
+  endpoint: ${S3_ENDPOINT}
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: us-east-1
+  bucket: wikmind
