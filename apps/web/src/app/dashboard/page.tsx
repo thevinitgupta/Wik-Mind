@@ -8,7 +8,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold flex-1">Dashboard</h1>
         <CreateWorkspace />
       </div>
-      <WorkspaceInsights />
+      <WorkspaceInsights sourceCount={2} />
     </div>
   );
 }
