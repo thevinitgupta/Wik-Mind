@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -31,15 +32,17 @@ import java.util.UUID;
 @Table(
         name = "sources",
         indexes = {
-                @Index(name = "idx_source_workspace", columnList = "workspace_id"),
-                @Index(name = "idx_source_status", columnList = "status"),
-                @Index(name = "idx_source_type", columnList = "type"),
-                @Index(name = "idx_source_created_at", columnList = "created_at")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_source_workspace_checksum",
-                        columnNames = {"workspace_id", "checksum"}
+                @Index(
+                        name = "idx_source_workspace",
+                        columnList = "workspace_id"
+                ),
+                @Index(
+                        name = "idx_source_type",
+                        columnList = "type"
+                ),
+                @Index(
+                        name = "idx_source_created_at",
+                        columnList = "created_at"
                 )
         }
 )
@@ -55,38 +58,33 @@ public class Source {
     private Workspace workspace;
 
     /**
-     * Original filename or display name.
+     * Logical/display name of the source.
      */
     @Column(nullable = false)
     private String name;
 
     /**
-     * Location inside object storage.
+     * Logical source type/integration.
      */
-    @Column(name = "storage_key")
-    private String storageKey;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SourceType type;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private SourceStatus status = SourceStatus.PENDING;
-
-    @Column(name = "mime_type")
-    private String mimeType;
-
-    private Long size;
-
-    @Column(nullable = false, length = 64)
-    private String checksum;
-
-    @Column(name = "failure_reason")
-    private String failureReason;
+    /**
+     * The currently active/latest version of this source.
+     *
+     * Nullable while the initial version is being created.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "latest_version_id")
+    private SourceVersion latestVersion; // understand how this solves N+1 problem
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false
+    )
     private Instant createdAt;
 
     @UpdateTimestamp
@@ -94,56 +92,31 @@ public class Source {
     private Instant updatedAt;
 
     /**
-     * Factory method for new uploads.
+     * Factory method for creating a new logical source.
      */
     public static Source create(
             Workspace workspace,
             String name,
-            SourceType type,
-            String checksum
+            SourceType type
     ) {
-
         Source source = new Source();
+
+        source.id = UUID.randomUUID();
         source.workspace = workspace;
         source.name = name;
         source.type = type;
-        source.status = SourceStatus.PENDING;
-        source.id = UUID.randomUUID();
-        source.checksum = checksum;
 
         return source;
     }
 
-    public void markProcessing() {
+    public void setLatestVersion(SourceVersion version) {
+        if (!version.getSource().getId().equals(this.id)) {
+            throw new IllegalArgumentException(
+                    "Version does not belong to this source"
+            );
+        }
 
-        this.status = SourceStatus.PROCESSING;
-        this.failureReason = null;
+        this.latestVersion = version;
     }
 
-    public void markReady() {
-
-        this.status = SourceStatus.READY;
-        this.failureReason = null;
-    }
-
-    public void markFailed(String reason) {
-
-        this.status = SourceStatus.FAILED;
-        this.failureReason = reason;
-    }
-
-    public void markDeleted() {
-
-        this.status = SourceStatus.DELETED;
-    }
-
-    public void completeUpload(
-            String storageKey,
-            String mimeType,
-            long size
-    ) {
-        this.storageKey = storageKey;
-        this.mimeType = mimeType;
-        this.size = size;
-    }
 }

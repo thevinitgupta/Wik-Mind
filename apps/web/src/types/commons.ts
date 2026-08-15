@@ -14,16 +14,6 @@ export enum SortOrder {
   DESC = "desc",
 }
 
-export interface Page<T> {
-  content: T[];
-  page: {
-    size: number;
-    number: number;
-    totalElements: number;
-    totalPages: number;
-  };
-}
-
 export function buildPageParams(request: PageRequest) {
     return {
         page: request.page ?? 0,

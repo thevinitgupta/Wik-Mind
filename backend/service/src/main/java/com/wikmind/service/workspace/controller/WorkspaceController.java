@@ -2,8 +2,11 @@ package com.wikmind.service.workspace.controller;
 
 import com.wikmind.service.auth.entity.AuthenticatedUser;
 import com.wikmind.service.source.entity.dto.CreateSourceRequest;
+import com.wikmind.service.source.entity.dto.CreateSourceVersionRequest;
 import com.wikmind.service.source.entity.dto.SourceResponse;
+import com.wikmind.service.source.entity.dto.SourceVersionResponse;
 import com.wikmind.service.source.service.SourceService;
+import com.wikmind.service.source.service.SourceVersionService;
 import com.wikmind.service.workspace.entity.dto.WorkspaceCreationRequestDTO;
 import com.wikmind.service.workspace.entity.dto.WorkspaceResponseDTO;
 import com.wikmind.service.workspace.service.WorkspaceService;
@@ -26,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,14 +37,16 @@ public class WorkspaceController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkspaceController.class);
     private final WorkspaceService workspaceService;
     private final SourceService sourceService;
+    private final SourceVersionService sourceVersionService;
 
-    public WorkspaceController(WorkspaceService workspaceService, SourceService sourceService) {
+    public WorkspaceController(WorkspaceService workspaceService, SourceService sourceService, SourceVersionService sourceVersionService) {
         this.workspaceService = workspaceService;
         this.sourceService = sourceService;
+        this.sourceVersionService = sourceVersionService;
     }
 
     @PostMapping
-    public ResponseEntity<WorkspaceResponseDTO> createWorkspace(@RequestBody WorkspaceCreationRequestDTO workspaceCreationDTO, @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+    public ResponseEntity<WorkspaceResponseDTO> createWorkspace(@RequestBody WorkspaceCreationRequestDTO workspaceCreationDTO, @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         WorkspaceResponseDTO workspaceResponseDTO = workspaceService.createWorkspace(workspaceCreationDTO.name(), authenticatedUser.getUserId().toString());
 
         return ResponseEntity.ok(workspaceResponseDTO);
@@ -51,14 +55,14 @@ public class WorkspaceController {
     @GetMapping
     public ResponseEntity<Page<WorkspaceResponseDTO>> getCurrentUserWorkspace(
             @PageableDefault(page = 0, size = 5, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
-            return ResponseEntity.ok(workspaceService.fetchWorkspacesForUser(authenticatedUser.getUserId(), pageable));
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        return ResponseEntity.ok(workspaceService.fetchWorkspacesForUser(authenticatedUser.getUserId(), pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<WorkspaceResponseDTO> getWorkspaceDetails(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
-            @PathVariable UUID id){
+            @PathVariable UUID id) {
         return ResponseEntity.ok(workspaceService.fetchWorkspaceByID(authenticatedUser.getUserId(), id));
     }
 
@@ -92,32 +96,35 @@ public class WorkspaceController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Sources **/
+    /**
+     * Sources
+     **/
 
     @PostMapping(value = "/{workspaceId}/sources",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<SourceResponse> uploadSource( @ModelAttribute CreateSourceRequest createSourceRequest,
-                                                       @PathVariable UUID workspaceId,
-                                                       @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SourceResponse> uploadSource(@ModelAttribute CreateSourceRequest createSourceRequest,@PathVariable UUID workspaceId, @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
 
-        SourceResponse sourceResponse = sourceService.upload(createSourceRequest,workspaceId,authenticatedUser.getUserId());
+        SourceResponse sourceResponse = sourceService.upload(createSourceRequest, workspaceId, authenticatedUser.getUserId());
         return ResponseEntity.ok().body(sourceResponse);
     }
 
-    @GetMapping(value = "/{workspaceId}/sources"
-    )
-    public ResponseEntity<Page<SourceResponse>> fetchSourcesForWorkspace(
-                                                             @PathVariable UUID workspaceId,
-                                                             @PageableDefault(page = 0, size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-                                                             @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+    @PostMapping(value = "/{workspaceId}/sources/{sourceId}/versions",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SourceVersionResponse> uploadSourceVersion(@ModelAttribute CreateSourceVersionRequest createSourceVersionRequest, @PathVariable UUID workspaceId,@PathVariable UUID sourceId, @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
 
-        Page<SourceResponse> sources = sourceService.getSourcesForWorkspace(workspaceId,authenticatedUser.getUserId(), pageable);
+        SourceVersionResponse sourceVersionResponse = sourceVersionService.createVersion(workspaceId, sourceId, createSourceVersionRequest, authenticatedUser.getUserId());
+        return ResponseEntity.ok().body(sourceVersionResponse);
+    }
+
+    @GetMapping(value = "/{workspaceId}/sources")
+    public ResponseEntity<Page<SourceResponse>> fetchSourcesForWorkspace(@PathVariable UUID workspaceId, @PageableDefault(page = 0, size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+
+        Page<SourceResponse> sources = sourceService.getSourcesForWorkspace(workspaceId, authenticatedUser.getUserId(), pageable);
         return ResponseEntity.ok().body(sources);
     }
 
     @ExceptionHandler({NullPointerException.class, IllegalArgumentException.class})
-    public ResponseEntity<String> handleWorkspaceException(Exception ex){
+    public ResponseEntity<String> handleWorkspaceException(Exception ex) {
         LOGGER.error("Error in workspace controller ", ex);
         return ResponseEntity.internalServerError().body("Something went wrong, please try again");
     }
