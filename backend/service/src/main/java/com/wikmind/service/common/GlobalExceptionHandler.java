@@ -3,6 +3,8 @@ package com.wikmind.service.common;
 import com.wikmind.service.common.exceptions.workspace.WorkspaceAccessDeniedException;
 import com.wikmind.service.common.exceptions.workspace.WorkspaceActionDeniedException;
 import com.wikmind.service.common.exceptions.workspace.WorkspaceNotFoundException;
+import com.wikmind.service.source.exceptions.DuplicateSourceException;
+import com.wikmind.service.source.exceptions.InvalidSourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,9 +44,27 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(WorkspaceActionDeniedException.class)
-    public ResponseEntity<String> workspaceACtionDeniedHandler(WorkspaceActionDeniedException ex){
+    public ResponseEntity<String> workspaceActionDeniedHandler(WorkspaceActionDeniedException ex){
         LOG.error("Action Being performed to workspace is not allowed: ", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Action cannot be performed for Workspace");
+    }
+
+    @ExceptionHandler(DuplicateSourceException.class)
+    public ResponseEntity<String> duplicateSourceHandler(DuplicateSourceException ex){
+        LOG.error("User tried to upload the same source again: ", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This version for source already exists");
+    }
+
+    @ExceptionHandler(InvalidSourceException.class)
+    public ResponseEntity<String> sourceNotAllowedHandler(InvalidSourceException ex){
+        LOG.error("User tried to upload the unsupported source: ", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<String> multipartFormExceptionHandler(MultipartException ex){
+        LOG.error("User tried to submit invalid form: ", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

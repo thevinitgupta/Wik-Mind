@@ -1,43 +1,59 @@
 "use client";
 
-import { Controller, UseFormReturn } from "react-hook-form";
+import { Controller, FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 import { CloudArrowUpIcon, FileTxtIcon, XIcon } from "@phosphor-icons/react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { CreateSourceForm } from "@/types/schema/source.schema";
-
-interface FileDropzoneProps {
-  form: UseFormReturn<CreateSourceForm>;
+interface FileDropzoneProps<T extends FieldValues> {
+  form: UseFormReturn<T>;
+  name: Path<T>;
   disabled: boolean;
 }
 
-const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
+const FileDropzone = <T extends FieldValues>({
+  form,
+  name,
+  disabled,
+}: FileDropzoneProps<T>) => {
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
 
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
 
-    if (bytes < 1024 * 1024 * 1024)
+    if (bytes < 1024 * 1024 * 1024) {
       return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    }
 
     return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
   };
 
+  const inputId = `source-upload-${name}`;
+
   return (
     <Controller
       control={form.control}
-      name="multipartFile"
+      name={name}
       disabled={disabled}
       render={({ field, fieldState }) => {
-        const file = field.value;
+        const file = field.value as File | undefined;
 
         const onFileSelected = (selectedFile?: File) => {
           if (!selectedFile) return;
 
-          form.setValue("multipartFile", selectedFile, {
+          form.setValue(name, selectedFile as any, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+        };
+
+        const removeFile = () => {
+          form.setValue(name, undefined as any, {
             shouldDirty: true,
             shouldTouch: true,
             shouldValidate: true,
@@ -48,23 +64,23 @@ const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
           <div className="space-y-3">
             <Card
               className="
-                                border-dashed
-                                transition-colors
-                                hover:border-primary
-                            "
+                border-dashed
+                transition-colors
+                hover:border-primary
+              "
             >
               <label
-                htmlFor="source-upload"
+                htmlFor={inputId}
                 className="
-                                    flex
-                                    cursor-pointer
-                                    flex-col
-                                    items-center
-                                    justify-center
-                                    gap-4
-                                    p-10
-                                    text-center
-                                "
+                  flex
+                  cursor-pointer
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-4
+                  p-10
+                  text-center
+                "
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -76,16 +92,16 @@ const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
               >
                 <CloudArrowUpIcon
                   className="
-                                        h-12
-                                        w-12
-                                        text-muted-foreground
-                                    "
+                    h-12
+                    w-12
+                    text-muted-foreground
+                  "
                 />
 
                 <div>
                   <p className="font-medium">Drop your file here</p>
 
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     or click to browse
                   </p>
                 </div>
@@ -99,9 +115,10 @@ const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
                 </p>
 
                 <input
-                  id="source-upload"
+                  id={inputId}
                   type="file"
                   hidden
+                  disabled={disabled}
                   onChange={(e) => onFileSelected(e.target.files?.[0])}
                 />
               </label>
@@ -111,9 +128,7 @@ const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
               <Card className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FileTxtIcon
-                      className="h-8 w-8 text-primary"
-                    />
+                    <FileTxtIcon className="h-8 w-8 text-primary" />
 
                     <div>
                       <p className="font-medium">{file.name}</p>
@@ -128,13 +143,8 @@ const FileDropzone = ({ form, disabled }: FileDropzoneProps) => {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() =>
-                      form.setValue("multipartFile", undefined, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      })
-                    }
+                    disabled={disabled}
+                    onClick={removeFile}
                   >
                     <XIcon className="h-4 w-4" />
                   </Button>

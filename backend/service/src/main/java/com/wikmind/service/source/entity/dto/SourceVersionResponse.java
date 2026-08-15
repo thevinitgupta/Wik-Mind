@@ -6,13 +6,16 @@ import com.wikmind.service.source.entity.enums.SourceType;
 import java.time.Instant;
 import java.util.UUID;
 
-public record SourceResponse(
+public record SourceVersionResponse(
         UUID id,
+        UUID sourceId,
         UUID workspaceId,
+        Integer versionNumber,
         String name,
         SourceType type,
-        SourceVersionSummary latestVersion,
-        Instant createdAt,
-        Instant updatedAt
+        SourceStatus status,
+        String mimeType,
+        Long size,
+        Instant createdAt
 ) {
 }

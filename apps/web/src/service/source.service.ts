@@ -1,7 +1,8 @@
 import { backendClient } from "@/lib/httpClient";
-import { SourceResponse, SourceSort } from "../types/source";
+import { SourceResponse, SourceSort, SourceVersionResponse } from "../types/source";
 import { CreateSourceForm } from "@/types/schema/source.schema";
 import { Page } from "@/types/commons";
+import { CreateSourceVersionForm } from "@/types/schema/create-version.scheme";
 
 export async function fetchWorkspaceSources(
   workspaceId: string,
@@ -69,6 +70,49 @@ export async function uploadSource(
         if (!event.total) return;
 
         onProgress?.(Math.round((event.loaded * 100) / event.total));
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export async function uploadSourceVersion(
+  workspaceId: string,
+  sourceId: string,
+  data: CreateSourceVersionForm,
+  onProgress?: (progress: number) => void
+): Promise<SourceVersionResponse> {
+  const formData = new FormData();
+
+  formData.append(
+    "displayName",
+    data.displayName || ""
+  );
+
+  if (data.multipartFile) {
+    formData.append(
+      "multipartFile",
+      data.multipartFile
+    );
+  }
+
+  const response = await backendClient.post(
+    `/api/workspaces/${workspaceId}/sources/${sourceId}/versions`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+
+      onUploadProgress(event) {
+        if (!event.total) return;
+
+        onProgress?.(
+          Math.round(
+            (event.loaded * 100) / event.total
+          )
+        );
       },
     }
   );

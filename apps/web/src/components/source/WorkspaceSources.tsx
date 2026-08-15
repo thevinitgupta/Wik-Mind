@@ -39,23 +39,16 @@ export default function WorkspaceSources({
 
   return (
     <div className="space-y-5">
-
       {/* Toolbar */}
-      <SourceToolbar
-        sort={sort}
-        onSortChange={onSortChange}
-      />
+      <SourceToolbar sort={sort} onSortChange={onSortChange} />
 
       {/* List */}
       {sources.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center">
-          <h3 className="font-medium">
-            No sources yet
-          </h3>
+          <h3 className="font-medium">No sources yet</h3>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Add a document or URL to start building
-            knowledge in this workspace.
+            Add a document or URL to start building knowledge in this workspace.
           </p>
         </div>
       ) : (
@@ -64,6 +57,7 @@ export default function WorkspaceSources({
             <SourceRow
               key={source.id}
               source={source}
+              workspaceId={source.workspaceId}
             />
           ))}
         </div>
@@ -77,7 +71,6 @@ export default function WorkspaceSources({
           onPageChange={onPageChange}
         />
       )}
-
     </div>
   );
 }

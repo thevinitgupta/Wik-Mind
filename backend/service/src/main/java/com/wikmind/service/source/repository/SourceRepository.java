@@ -12,33 +12,16 @@ import java.util.UUID;
 
 public interface SourceRepository extends JpaRepository<Source, UUID> {
 
-    boolean existsByWorkspaceIdAndChecksum(
-            UUID workspaceId,
-            String checksum
-    );
-
-    Optional<Source> findByWorkspaceIdAndChecksum(
-            UUID workspaceId,
-            String checksum
-    );
-
     Page<Source> findByWorkspaceId(
             UUID workspaceId,
             Pageable pageable
     );
 
-    Page<Source> findByWorkspaceIdAndStatus(
-            UUID workspaceId,
-            SourceStatus status,
-            Pageable pageable
+    long countByWorkspaceId(
+            UUID workspaceId
     );
 
-    long countByWorkspaceId(UUID workspaceId);
-
-    long countByWorkspaceIdAndStatus(
-            UUID workspaceId,
-            SourceStatus status
+    void deleteByWorkspace(
+            Workspace workspace
     );
-
-    void deleteByWorkspace(Workspace workspace);
 }
