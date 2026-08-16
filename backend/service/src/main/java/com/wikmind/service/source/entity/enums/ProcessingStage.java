@@ -15,6 +15,7 @@ public enum ProcessingStage {
      * @return ProcessingStage
      */
     public ProcessingStage next() {
+        if(this.equals(ProcessingStage.INDEXING)) return INDEXING;
         return VALS[(this.ordinal() + 1) % VALS.length];
     }
 }

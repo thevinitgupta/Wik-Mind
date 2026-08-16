@@ -84,8 +84,9 @@ public class SourceVersionService {
 
         SourceUploadStrategy strategy = sourceUploadStrategyRegistry.get(source.getType());
 
-        return sourceVersionRepository.save(sourceVersion);
-
+        SourceVersion savedVersion = sourceVersionRepository.save(sourceVersion);
+        processingJobService.queue(savedVersion);
+        return savedVersion;
     }
 
 
