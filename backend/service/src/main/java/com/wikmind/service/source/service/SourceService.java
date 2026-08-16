@@ -5,6 +5,7 @@ import com.wikmind.service.common.exceptions.workspace.WorkspaceNotFoundExceptio
 import com.wikmind.service.source.entity.Source;
 import com.wikmind.service.source.entity.SourceVersion;
 import com.wikmind.service.source.entity.dto.CreateSourceRequest;
+import com.wikmind.service.source.entity.dto.CreateSourceVersionRequest;
 import com.wikmind.service.source.entity.dto.SourceResponse;
 import com.wikmind.service.source.exceptions.SourceUploadException;
 import com.wikmind.service.source.repository.SourceRepository;
@@ -29,19 +30,19 @@ public class SourceService {
     private final SourceUploadStrategyRegistry sourceUploadStrategyRegistry;
     private final WorkspaceRepository workspaceRepository;
     private final SourceRepository sourceRepository;
-    private final SourceVersionRepository sourceVersionRepository;
     private final SourceNameUtil sourceNameUtil;
     private final SourceMapper sourceMapper;
     private final SHA256ChecksumService checksumService;
+    private final SourceVersionService sourceVersionService;
 
-    public SourceService(SourceUploadStrategyRegistry sourceUploadStrategyRegistry, WorkspaceRepository workspaceRepository, SourceRepository sourceRepository, SourceVersionRepository sourceVersionRepository, SourceNameUtil sourceNameUtil, SourceMapper sourceMapper, SHA256ChecksumService checksumService) {
+    public SourceService(SourceUploadStrategyRegistry sourceUploadStrategyRegistry, WorkspaceRepository workspaceRepository, SourceRepository sourceRepository, SourceNameUtil sourceNameUtil, SourceMapper sourceMapper, SHA256ChecksumService checksumService, SourceVersionService sourceVersionService) {
         this.sourceUploadStrategyRegistry = sourceUploadStrategyRegistry;
         this.workspaceRepository = workspaceRepository;
         this.sourceRepository = sourceRepository;
-        this.sourceVersionRepository = sourceVersionRepository;
         this.sourceNameUtil = sourceNameUtil;
         this.sourceMapper = sourceMapper;
         this.checksumService = checksumService;
+        this.sourceVersionService = sourceVersionService;
     }
 
     @Transactional
@@ -49,7 +50,7 @@ public class SourceService {
 
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new WorkspaceNotFoundException("Workspace with ID " + workspaceId + " does not exist"));
 
-        validateWorkspaceAccess(workspace, workspaceId, userId);
+        validateWorkspaceAccess(workspace, userId);
 
         String sourceName = sourceNameUtil.fetchNameFromCreationRequest(createSourceRequest);
 
@@ -63,14 +64,9 @@ public class SourceService {
 
         Source savedSource = sourceRepository.save(source);
 
-        SourceVersion sourceVersion = SourceVersion.create(savedSource, 1, sourceName, checksum);
+        SourceVersion savedVersion = sourceVersionService.createInitialVersion(savedSource, sourceName, checksum);
 
-        SourceUploadStrategy strategy = sourceUploadStrategyRegistry.get(savedSource.getType());
-
-        strategy.upload(sourceVersion, createSourceRequest.multipartFile());
-
-        SourceVersion savedVersion = sourceVersionRepository.save(sourceVersion);
-
+        uploadVersion(savedVersion, source, createSourceRequest);
         savedSource.setLatestVersion(savedVersion);
 
         sourceRepository.save(savedSource);
@@ -78,20 +74,25 @@ public class SourceService {
         return sourceMapper.toResponse(savedSource);
     }
 
+    private void uploadVersion(SourceVersion sourceVersion, Source source, CreateSourceRequest createSourceRequest) {
+        SourceUploadStrategy strategy = sourceUploadStrategyRegistry.get(source.getType());
+        strategy.upload(sourceVersion, createSourceRequest.multipartFile());
+    }
+
     public Page<SourceResponse> getSourcesForWorkspace(UUID workspaceId, UUID userId, Pageable pageable) {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new WorkspaceNotFoundException("Workspace with ID " + workspaceId + " does not exist"));
 
-        validateWorkspaceAccess(workspace, workspaceId, userId);
+        validateWorkspaceAccess(workspace, userId);
 
         Page<Source> sources = sourceRepository.findByWorkspaceId(workspaceId, pageable);
 
         return sources.map(sourceMapper::toResponse);
     }
 
-    private void validateWorkspaceAccess(@NonNull Workspace workspace, UUID workspaceId, UUID userId) {
+    private void validateWorkspaceAccess(@NonNull Workspace workspace, UUID userId) {
 
         if (!workspace.getOwner().getId().equals(userId)) {
-            throw new WorkspaceActionDeniedException("Unauthorized user trying to access workspace: " + workspaceId);
+            throw new WorkspaceActionDeniedException("Unauthorized user trying to access workspace: " + workspace.getId());
         }
     }
 }
