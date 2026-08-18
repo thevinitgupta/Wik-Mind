@@ -128,7 +128,7 @@ const UploadSourceDialog = ({
           )}
 
           {mutation.isError && (
-            <p className="text-sm text-destructive">{mutation.error.message}</p>
+            <p className="text-sm text-destructive">{mutation.errorMessage}</p>
           )}
 
           <DialogFooter>

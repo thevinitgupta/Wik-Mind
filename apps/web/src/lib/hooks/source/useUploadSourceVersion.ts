@@ -40,6 +40,8 @@ export function useUploadSourceVersion(workspaceId: string, sourceId: string) {
       ? mutation.error.message
       : "Failed to upload source version.";
 
+      console.log("Error Message in hook:", errorMessage)
+
   return {
     ...mutation,
     progress,
