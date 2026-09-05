@@ -23,6 +23,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER_URL:localhost:9092}
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        acks: all
+        enable.idempotence: true
   ai:
     ollama:
       base-url: http://localhost:11434
@@ -39,3 +48,4 @@ storage:
   secret-key: ${S3_SECRET_KEY}
   region: us-east-1
   bucket: wikmind
+debug: true
