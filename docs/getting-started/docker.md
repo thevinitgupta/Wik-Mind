@@ -23,6 +23,7 @@ cd infrastructure/docker
 docker compose \
   -f compose.yaml \
   -f compose.storage.yaml \
+  -f compose.kafka.yaml \
   up -d
 ```
 
