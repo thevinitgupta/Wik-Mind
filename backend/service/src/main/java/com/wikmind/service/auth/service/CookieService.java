@@ -10,7 +10,11 @@ import java.util.Optional;
 @Service
 public class CookieService {
     public String extractAccessToken(HttpServletRequest request){
-        Optional<Cookie> accessTokenCookie = Arrays.stream(request.getCookies()).filter(cookie -> {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        Optional<Cookie> accessTokenCookie = Arrays.stream(cookies).filter(cookie -> {
             return cookie.getName().equalsIgnoreCase("access_token");
         }).findFirst();
 
