@@ -23,6 +23,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER_URL:localhost:9092}
+
+    producer:
+      properties:
+        acks: all
+        enable.idempotence: true
   ai:
     ollama:
       base-url: http://localhost:11434
