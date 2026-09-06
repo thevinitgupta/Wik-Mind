@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: worker
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  flyway:
+    enabled: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER_URL}
+
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:wikmind-worker}
+      auto-offset-reset: earliest
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+
+wikmind:
+  ai:
+
+    tasks:
+
+      extraction:
+        provider: ${WIKMIND_AI_EXTRACTION_PROVIDER:ollama}
+        model: ${WIKMIND_AI_EXTRACTION_MODEL:llama3.1}
+
+      enrichment:
+        provider: ${WIKMIND_AI_ENRICHMENT_PROVIDER:ollama}
+        model: ${WIKMIND_AI_ENRICHMENT_MODEL:llama3.1}
+
+      relationship:
+        provider: ${WIKMIND_AI_RELATIONSHIP_PROVIDER:ollama}
+        model: ${WIKMIND_AI_RELATIONSHIP_MODEL:llama3.1}
+
+      embedding:
+        provider: ${WIKMIND_AI_EMBEDDING_PROVIDER:ollama}
+        model: ${WIKMIND_AI_EMBEDDING_MODEL:nomic-embed-text}
+
+    providers:
+      openai:
+        api-key: ${WIKMIND_AI_OPENAI_API_KEY:}
+
+      ollama:
+        base-url: ${WIKMIND_AI_OLLAMA_BASE_URL:http://localhost:11434}
