@@ -7,8 +7,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -31,55 +29,29 @@ public class OutboxEvent {
 
 
     @Enumerated(EnumType.STRING)
-    @Column(
-            name = "event_type",
-            nullable = false,
-            length = 100
-    )
+    @Column(name = "event_type", nullable = false, length = 100)
     OutboxEventType eventType;
 
     @Enumerated(EnumType.STRING)
-    @Column(
-            name = "aggregate_type",
-            nullable = false,
-            length = 100
-    )
+    @Column(name = "aggregate_type", nullable = false, length = 100)
     OutboxAggregateType aggregateType;
 
-    @Column(
-            name = "aggregate_id",
-            nullable = false
-    )
+    @Column(name = "aggregate_id", nullable = false)
     UUID aggregateId;
 
     @Enumerated(EnumType.STRING)
-    @Column(
-            name = "status",
-            nullable = false,
-            length = 100
-    )
+    @Column(name = "status", nullable = false, length = 100)
     OutboxStatus status;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(
-            name = "payload",
-            nullable = false,
-            columnDefinition = "jsonb"
-    )
+    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     private String payload;
 
-    @Column(
-            name = "attempt_count",
-            nullable = false
-    )
+    @Column(name = "attempt_count", nullable = false)
     private Integer attemptCount;
 
     @CreationTimestamp
-    @Column(
-            name = "created_at",
-            nullable = false,
-            updatable = false
-    )
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(name = "published_at")
@@ -91,22 +63,13 @@ public class OutboxEvent {
     @Column(name = "next_attempt_at")
     private Instant nextAttemptAt;
 
-    @Column(
-            name = "error_message",
-            columnDefinition = "TEXT"
-    )
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
-    private OutboxEvent(
-            UUID id,
-            OutboxEventType eventType,
-            OutboxAggregateType aggregateType,
-            UUID aggregateId,
-            String payload
-    ) {
+    private OutboxEvent(UUID id, OutboxEventType eventType, OutboxAggregateType aggregateType, UUID aggregateId, String payload) {
         this.id = id;
         this.eventType = eventType;
         this.aggregateType = aggregateType;
@@ -116,27 +79,13 @@ public class OutboxEvent {
         this.attemptCount = 0;
     }
 
-    public static OutboxEvent pending(
-            UUID eventId,
-            OutboxEventType eventType,
-            OutboxAggregateType aggregateType,
-            UUID aggregateId,
-            String payload
-    ) {
-        return new OutboxEvent(
-                eventId,
-                eventType,
-                aggregateType,
-                aggregateId,
-                payload
-        );
+    public static OutboxEvent pending(UUID eventId, OutboxEventType eventType, OutboxAggregateType aggregateType, UUID aggregateId, String payload) {
+        return new OutboxEvent(eventId, eventType, aggregateType, aggregateId, payload);
     }
 
     public void markPublished(Instant publishedAt) {
         if (this.status != OutboxStatus.PUBLISHING) {
-            throw new IllegalStateException(
-                    "Only PUBLISHING events can be marked as PUBLISHED"
-            );
+            throw new IllegalStateException("Only PUBLISHING events can be marked as PUBLISHED");
         }
 
         this.status = OutboxStatus.PUBLISHED;
@@ -147,9 +96,7 @@ public class OutboxEvent {
 
     public void markPublishing(Instant lockedUntil) {
         if (this.status != OutboxStatus.PENDING) {
-            throw new IllegalStateException(
-                    "Only PENDING events can be marked as PUBLISHING"
-            );
+            throw new IllegalStateException("Only PENDING events can be marked as PUBLISHING");
         }
 
         this.status = OutboxStatus.PUBLISHING;
@@ -158,14 +105,9 @@ public class OutboxEvent {
         this.attemptCount++;
     }
 
-    public void markPublishFailed(
-            String errorMessage,
-            Instant nextAttemptAt
-    ) {
+    public void markPublishFailed(String errorMessage, Instant nextAttemptAt) {
         if (this.status != OutboxStatus.PUBLISHING) {
-            throw new IllegalStateException(
-                    "Only PUBLISHING events can be marked as failed"
-            );
+            throw new IllegalStateException("Only PUBLISHING events can be marked as failed");
         }
 
         this.status = OutboxStatus.PENDING;
@@ -174,11 +116,7 @@ public class OutboxEvent {
         this.nextAttemptAt = nextAttemptAt;
     }
 
-    public void recordAttempt(
-            Instant attemptedAt,
-            Instant nextAttemptAt,
-            String errorMessage
-    ) {
+    public void recordAttempt(Instant attemptedAt, Instant nextAttemptAt, String errorMessage) {
         this.attemptCount++;
         this.lastAttemptAt = attemptedAt;
         this.nextAttemptAt = nextAttemptAt;

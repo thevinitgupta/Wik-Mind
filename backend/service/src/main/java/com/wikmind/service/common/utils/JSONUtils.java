@@ -13,12 +13,12 @@ public class JSONUtils {
         this.objectMapper = objectMapper;
     }
 
-    public <T>String entityToJSON(T entity){
-        if(entity==null) return null;
+    public <T> String entityToJSON(T entity) {
+        if (entity == null) return null;
         try {
             return objectMapper.writeValueAsString(entity);
         } catch (JacksonException e) {
-            throw new EntityPayloadGenerationException("Error generating JSON Payload from entity:"+entity, e);
+            throw new EntityPayloadGenerationException("Error generating JSON Payload from entity:" + entity, e);
         }
     }
 

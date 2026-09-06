@@ -6,7 +6,6 @@ import com.wikmind.service.common.service.OutboxStateService;
 import com.wikmind.service.common.service.ProcessingJobEventProducer;
 import com.wikmind.service.common.utils.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ public class OutboxPublisher {
 
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     public void publishPendingOutboxProcessingJobEvents() {
-        log.info("---------------------PUBLISHING PENDING PROCESSING JOBS---------------------");
         List<OutboxEvent> events = outboxStateService.claimProcessingJobEvents(PUBLISHING_BATCH_SIZE);
         for (OutboxEvent outboxEvent : events) {
             ProcessingJobQueuedEvent payload = jsonUtils.jsonToEntity(outboxEvent.getPayload(), ProcessingJobQueuedEvent.class);
@@ -47,7 +45,7 @@ public class OutboxPublisher {
     }
 
     @Scheduled(fixedDelay = 20, timeUnit = TimeUnit.MINUTES)
-    public void recoverExpiredPublishingEvents(){
+    public void recoverExpiredPublishingEvents() {
         int recovered =
                 outboxStateService
                         .recoverExpiredPublishingEvents(RECOVERY_BATCH_SIZE);

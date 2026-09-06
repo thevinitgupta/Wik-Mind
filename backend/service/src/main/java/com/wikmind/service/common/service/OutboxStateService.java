@@ -4,9 +4,6 @@ import com.wikmind.service.common.entity.OutboxEvent;
 import com.wikmind.service.common.entity.enums.OutboxEventType;
 import com.wikmind.service.common.entity.enums.OutboxStatus;
 import com.wikmind.service.common.repository.OutboxEventRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class OutboxStateService {
+    private static final int LOCKED_LEASE_DURATION_SECONDS = 120;
     private final OutboxEventRepository outboxEventRepository;
 
     public OutboxStateService(OutboxEventRepository outboxEventRepository) {
@@ -24,10 +22,9 @@ public class OutboxStateService {
 
     @Transactional
     public List<OutboxEvent> claimProcessingJobEvents(int batchSize) {
-        PageRequest pageRequest = PageRequest.of(0, batchSize, Sort.by(Sort.Order.desc("created_at"), Sort.Order.asc("attempt_count")));
         List<OutboxEvent> events = outboxEventRepository.findPendingProcessingJobEvents(OutboxEventType.PROCESSING_JOB_QUEUED, OutboxStatus.PENDING, batchSize);
 
-        Instant lockedUntil = Instant.now().plusSeconds(120);
+        Instant lockedUntil = Instant.now().plusSeconds(LOCKED_LEASE_DURATION_SECONDS);
 
         events.forEach(outboxEvent -> {
             outboxEvent.markPublishing(lockedUntil);

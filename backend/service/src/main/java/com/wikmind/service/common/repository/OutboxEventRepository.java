@@ -3,8 +3,6 @@ package com.wikmind.service.common.repository;
 import com.wikmind.service.common.entity.OutboxEvent;
 import com.wikmind.service.common.entity.enums.OutboxEventType;
 import com.wikmind.service.common.entity.enums.OutboxStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,8 +15,8 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, UUID> 
     @Query(value = """
              SELECT *
               FROM outbox_events
-              WHERE status = 'PENDING'
-                AND event_type = 'PROCESSING_JOB_QUEUED'
+              WHERE status = :status
+                AND event_type = :eventType
                 AND (
                     next_attempt_at IS NULL
                     OR next_attempt_at <= CURRENT_TIMESTAMP

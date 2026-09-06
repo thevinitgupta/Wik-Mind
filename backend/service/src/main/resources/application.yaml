@@ -46,4 +46,3 @@ storage:
   secret-key: ${S3_SECRET_KEY}
   region: us-east-1
   bucket: wikmind
-debug: true
