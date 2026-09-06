@@ -97,6 +97,9 @@ public class OutboxEvent {
     )
     private String errorMessage;
 
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
     private OutboxEvent(
             UUID id,
             OutboxEventType eventType,
@@ -130,9 +133,45 @@ public class OutboxEvent {
     }
 
     public void markPublished(Instant publishedAt) {
+        if (this.status != OutboxStatus.PUBLISHING) {
+            throw new IllegalStateException(
+                    "Only PUBLISHING events can be marked as PUBLISHED"
+            );
+        }
+
         this.status = OutboxStatus.PUBLISHED;
         this.publishedAt = publishedAt;
+        this.lockedUntil = null;
         this.errorMessage = null;
+    }
+
+    public void markPublishing(Instant lockedUntil) {
+        if (this.status != OutboxStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only PENDING events can be marked as PUBLISHING"
+            );
+        }
+
+        this.status = OutboxStatus.PUBLISHING;
+        this.lockedUntil = lockedUntil;
+        this.lastAttemptAt = Instant.now();
+        this.attemptCount++;
+    }
+
+    public void markPublishFailed(
+            String errorMessage,
+            Instant nextAttemptAt
+    ) {
+        if (this.status != OutboxStatus.PUBLISHING) {
+            throw new IllegalStateException(
+                    "Only PUBLISHING events can be marked as failed"
+            );
+        }
+
+        this.status = OutboxStatus.PENDING;
+        this.lockedUntil = null;
+        this.errorMessage = errorMessage;
+        this.nextAttemptAt = nextAttemptAt;
     }
 
     public void recordAttempt(

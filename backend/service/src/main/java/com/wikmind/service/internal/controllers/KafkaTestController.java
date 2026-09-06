@@ -1,5 +1,6 @@
 package com.wikmind.service.internal.controllers;
 
+import com.wikmind.service.common.entity.dto.ProcessingJobQueuedEvent;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/internal/kafka")
 public class KafkaTestController {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, ProcessingJobQueuedEvent> kafkaTemplate;
 
-    public KafkaTestController(KafkaTemplate<String, String> kafkaTemplate) {
+    public KafkaTestController(KafkaTemplate<String, ProcessingJobQueuedEvent> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
